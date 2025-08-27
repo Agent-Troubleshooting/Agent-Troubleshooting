@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Seoudi Supermarket — Agent Troubleshooting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Seoudi Supermarket</div>
+    <div class="badge">Agent Troubleshooting</div>
+  </header>
+
+  <main class="container">
+    <!-- سيكشن واحد لبيانات الشكوى -->
+    <section class="card">
+      <div class="card-title">بيانات الشكوى</div>
+      <div class="grid-2">
+        <label>Customer Number
+          <input id="custNumber" placeholder="05x xxx xxxx" />
+        </label>
+        <label>Order Number
+          <input id="orderNumber" placeholder="SO-XXXXXXX" />
+        </label>
+        <label>Order Created from FL
+          <input id="orderCreated" placeholder="SO-NEW-XXXX" />
+        </label>
+        <label>Receipt Number
+          <input id="receiptNumber" placeholder="RCPT-XXXXXX" />
+        </label>
+        <label class="full">Product
+          <input id="productName" placeholder="اكتب اسم المنتج / الكود" />
+        </label>
+      </div>
+    </section>
+
+    <!-- أنواع الشكاوي -->
+    <section class="card">
+      <div class="card-title">أنواع الشكاوي</div>
+      <div class="inline-options">
+        <label><input type="radio" name="ctype" value="pq"> جودة منتج</label>
+        <label><input type="radio" name="ctype" value="missing"> عناصر مفقودة</label>
+        <label><input type="radio" name="ctype" value="wt"> خطأ فردي</label>
+      </div>
+    </section>
+
+    <!-- الأسئلة -->
+    <section class="card" id="qaCard" style="display:none">
+      <div class="card-title">الأسئلة الإرشادية</div>
+      <div id="questions"></div>
+    </section>
+
+    <!-- المطلوب + الخلاصة المصغّرة + أزرار النسخ/إنهاء -->
+    <section class="card" id="sumCard" style="display:none">
+      <div class="card-title">المطلوب</div>
+
+      <!-- النتائج (المطلوب) -->
+      <div id="summary"></div>
+
+      <!-- أزرار على الشمال -->
+      <div class="buttons buttons-left">
+        <button class="btn" id="copyMiniBtn">نسخ الخلاصة</button>
+        <button class="btn danger" id="endBtn">إنهاء الشكوى</button>
+      </div>
+
+      <!-- الخلاصة المصغّرة (بيانات + خطوات + المطلوب) -->
+      <div class="mini-summary" id="miniSummary"></div>
+    </section>
+  </main>
+
+  <div class="prepared"><span>Prepared By:</span> <strong>Passant Sayed</strong></div>
+  <footer>© Seoudi Supermarket 2025 ❤</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

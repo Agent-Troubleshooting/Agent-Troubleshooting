@@ -1,0 +1,41 @@
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:Tajawal, Tahoma, Arial, sans-serif;direction:rtl;background:#f5faf6;color:#163d29}
+
+.topbar{background:#0f7a43;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+.topbar .brand{font-weight:800}
+.topbar .badge{background:#0a5a31;padding:6px 10px;border-radius:999px;font-size:12px}
+
+.container{max-width:1000px;margin:18px auto;padding:0 12px}
+.card{background:#fff;border:1px solid #dbe7df;border-radius:14px;padding:14px 14px 10px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card-title{color:#0f7a43;font-weight:800;margin-bottom:10px}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:10px}
+.grid-2 .full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:6px;font-size:14px}
+input,select,textarea{border:1px solid #cfe3d8;border-radius:10px;padding:10px 12px;background:#f8fcfa;outline:none}
+
+.inline-options label{display:block;margin:6px 0}
+.q-block{border:1px dashed #b8decb;background:#f6fbf8;border-radius:12px;padding:12px;margin:8px 0}
+.q-title{font-weight:800;color:#0f7a43;margin-bottom:6px}
+
+.case-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.case{border:1px solid #e1efe7;background:#eef8f1;border-radius:12px;padding:10px;cursor:pointer}
+.case:hover{box-shadow:0 2px 7px rgba(0,0,0,.06)}
+.case.active{outline:3px solid #0f7a43;background:#e7f7ee}
+
+.result{background:#fff6b5;border-right:4px solid #f0c400;border-radius:10px;padding:8px 10px;margin:6px 0;font-weight:800;color:#22402c}
+
+.buttons{display:flex;gap:10px;margin-top:10px}
+.buttons-left{justify-content:flex-start}
+.btn{background:#0f7a43;color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
+.btn.danger{background:#d9534f}
+
+.mini-summary{background:#eef3ff;border:1px solid #d6e0ff;border-radius:12px;padding:10px 12px;margin-top:12px;color:#203250;font-size:13px}
+.mini-summary .mini-title{font-weight:800;margin-bottom:6px;color:#203250}
+.mini-summary ul{margin:6px 0 0 0;padding:0 18px}
+.mini-summary .mini-section{margin-top:6px}
+
+.prepared{max-width:1000px;margin:6px auto 0;padding:0 12px;text-align:left;font-size:13px}
+.prepared span{color:#6a7d73;margin-left:6px}
+.prepared strong{color:#0a5a31;font-weight:800}
+footer{color:#6a7d73;text-align:center;margin:8px 0 40px}
