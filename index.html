@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Troubleshooting – Seoudi Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="rtl">
+  <!-- Header (Sticky & lighter green) -->
+  <header class="header sticky">
+    <!-- يسار: Prepared By -->
+    <div class="header-left">
+      <div class="prepared-left">Prepared By: <strong>Passant Sayed</strong></div>
+    </div>
+
+    <!-- وسط: العنوان -->
+    <div class="header-center">
+      <div class="prepared store">Agent Troubleshooting</div>
+      <div class="prepared product">Seoudi Supermarket</div>
+    </div>
+
+    <!-- يمين: سواتش الألوان -->
+    <div class="header-tools">
+      <div class="theme-switcher" aria-label="تغيير الثيم">
+        <button class="swatch green"  data-swatch="green"  title="Green"></button>
+        <button class="swatch mid"    data-swatch="mid"    title="Mid Green"></button>
+        <button class="swatch blue"   data-swatch="blue"   title="Blue"></button>
+        <button class="swatch violet" data-swatch="violet" title="Violet"></button>
+        <button class="swatch pink"   data-swatch="pink"   title="Pink"></button>
+        <button class="swatch orange" data-swatch="orange" title="Orange"></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- العمود الأيسر: نوع الشكوى + الخلاصة (Sticky) -->
+    <section class="col-left">
+      <article class="card p-card">
+        <h3 class="card-title" data-ico="📋">نوع الشكوى</h3>
+        <div class="segmented" id="ctypeTabs">
+          <label class="seg">
+            <input type="radio" name="ctype" value="pq" />
+            <span>جودة منتج</span>
+          </label>
+          <label class="seg">
+            <input type="radio" name="ctype" value="missing" />
+            <span>عناصر مفقودة</span>
+          </label>
+          <label class="seg">
+            <input type="radio" name="ctype" value="wt" />
+            <span>خطأ فردي</span>
+          </label>
+        </div>
+        <p class="hint mt8">اختر نوع الشكوى لبدء الخطوات.</p>
+      </article>
+
+      <!-- الخلاصة: تحت نوع الشكوى بمسافة صغيرة + Sticky -->
+      <article id="miniSummaryCard" class="card p-card mini-sticky mini-under">
+        <h3 class="card-title" data-ico="🗂️">الخلاصة</h3>
+        <div id="miniSummary"></div>
+        <div class="row mt12" style="justify-content:flex-end; gap:10px;">
+          <button id="copyMiniBtn" class="seg">نسخ الخلاصة</button>
+          <button id="endBtn" class="seg">إنهاء الشكوى</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- العمود الأيمن: بيانات + الأسئلة + المطلوب -->
+    <section class="col-right">
+      <!-- بيانات الشكوى -->
+      <article class="card p-card">
+        <h3 class="card-title" data-ico="📑">بيانات الشكوى</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <div class="label">Customer Number</div>
+            <input id="custNumber" type="text" placeholder="05x xxx xxxx" />
+          </div>
+          <div class="form-field">
+            <div class="label">Order Number</div>
+            <input id="orderNumber" type="text" placeholder="SO-XXXXXXX" />
+          </div>
+          <div class="form-field">
+            <div class="label">Order Created from FL</div>
+            <input id="orderCreated" type="text" placeholder="2025-08-01 14:33" />
+          </div>
+          <div class="form-field">
+            <div class="label">Receipt Number</div>
+            <input id="receiptNumber" type="text" placeholder="RCPT-XXXXXX" />
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <div class="label">Product</div>
+            <input id="productName" type="text" placeholder="Norwegian Salmon 500g" />
+          </div>
+        </div>
+      </article>
+
+      <!-- الأسئلة -->
+      <article id="qaCard" class="card p-card" style="display:none">
+        <h3 class="card-title" data-ico="🧩">الأسئلة</h3>
+        <div class="accent-line"></div>
+        <div id="questions"></div>
+      </article>
+
+      <!-- المطلوب -->
+      <article id="summaryCard" class="card p-card mt16" style="display:block">
+        <h3 class="card-title" data-ico="✅">
+          المطلوب <span class="badge badge-req">هام</span>
+        </h3>
+        <div id="summary"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer-prepared">Prepared By: Passant Sayed</footer>
+  <script src="app.js" defer></script>
+</body>
+</html>
