@@ -17,13 +17,18 @@ const btnCopy = document.getElementById('copyMiniBtn');
 const btnSave = document.getElementById('saveDraftBtn');
 const btnEnd  = document.getElementById('endBtn');
 
+/* حقل اسم المنتج من على OTA (جديد) */
+const otaEl   = document.getElementById('otaProductName');
+
+
 /* مفاتيح التخزين */
 const DRAFTS_KEY = 'seoudi_drafts_v1';
 
 /* =========================
-   “بيانات الشكوى” أتلغت — نحتفظ فقط بالملاحظات
+   “بيانات الشكوى” أتلغت — نحتفظ فقط بالملاحظات + (اسم المنتج من OTA)
    ========================= */
 const FIELDS = {
+  otaName:   () => otaEl?.value?.trim() || '',
   otherNotes: () => document.getElementById('otherNotes')?.value?.trim() || '',
 };
 
@@ -49,17 +54,67 @@ function show(el, on) { if(!el) return; el.style.display = on ? '' : 'none'; }
 function clear(el) { if(!el) return; el.innerHTML = ''; }
 function esc(s=''){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
-/* ========== تنسيق خاص لسطر الاعتذار ========== */
+/* ========== تنسيق خاص لسطر الاعتذار + ملاحظة المنتجات المبردة/المجمدة ========== */
 (function injectApologyStyle(){
   try{
     const st = document.createElement('style');
     st.textContent = `
       .result-apology .apology-main{ font-weight:700; color:#0d47a1; }
+      .note-cold { 
+        background-color:#eaf3ff;
+        color:#0d47a1;
+        border:2px solid #0d47a1;
+        border-radius:10px;
+        padding:12px 14px;
+        margin-top:12px;
+        line-height:1.7;
+      }
+      .note-cold b { color:#0b3c91; }
     `;
     document.head.appendChild(st);
   }catch{}
 })();
 
+/* ========= ملحوظة المنتجات المبردة/المجمدة — تُعرض أسفل عنوان "المطلوب" فقط عند جودة منتج ========= */
+
+
+function ensureColdNote(){
+  try{
+    if(!requiredEl) return;
+
+    // هل يوجد أي عنصر "مطلوب" يخص الشيف؟
+    const hasChef = [...(requiredEl.querySelectorAll('.result')||[])]
+      .some(el => /Chef|chef/.test((el.textContent||'').trim()));
+
+    // نظهر الملحوظة في حالتين:
+    // 1) شكوى جودة منتج (PQ)
+    // 2) خطأ فردي (WT) وكان هناك بند متعلق بالشيف
+    const shouldShow = (state.type === 'pq') || (state.type === 'wt' && hasChef);
+
+    const existing = requiredEl.querySelector('.note-cold');
+    if (!shouldShow){
+      if(existing) existing.remove(); // لو مش مطلوبة، نشيلها
+      return;
+    }
+
+    if (existing){
+      // انقلها لأسفل القسم لتكون آخر عنصر في "المطلوب"
+      requiredEl.appendChild(existing);
+      return;
+    }
+
+    const note = document.createElement('div');
+    note.className = 'note-cold';
+    note.innerHTML = `
+    <b>ملحوظة هامة:</b><br>
+    في حالة <b>المنتجات المبردة أو المجمدة</b>، يتم إبلاغ العميل بضرورة الاحتفاظ بالمنتج على حالته.<br>
+    <b>لو المنتج مبرد</b>، يتم حفظه في <b>الثلاجة</b>، ولو المنتج <b>مجمد</b> يُحفظ في <b>الفريزر</b>.<br>
+    في حالة أن المنتج <b>مبرد وتم الاحتفاظ به مجمد</b> أو <b>العكس</b> يتم عمل <b>شكوى فقط</b> ولا يتم عمل طلب جديد للعميل.
+    `;
+    // ضعها أسفل قسم "المطلوب" كآخر عنصر
+    requiredEl.appendChild(note);
+  }catch{}
+}
 /* دالة فحص: نضيف رسالة الاعتذار فقط عندما يكون المطلوب "عمل طلب جديد" فعليًا (وليس "عرض") */
 function shouldInjectApology(line=''){
   const t = (line||'').trim();
@@ -92,7 +147,8 @@ function addResult(text, opts={}){
     يتم توضيح ده في الـ Ticket بشكل واضح علشان يتم المتابعة من الفريق المختص.`;
     requiredEl.appendChild(ap);
   }
-
+  // تأكيد إظهار ملحوظة المنتجات المبردة/المجمدة إن كانت الشكوى جودة منتج
+  ensureColdNote();
   renderMiniSummary();
 }
 
@@ -128,6 +184,8 @@ function buildCopyText(){
   const SEP = '----------------------------------------';
 
   const data = [];
+  const ota = FIELDS.otaName();
+  if (ota) data.push(['اسم المنتج (OTA)', ota]);
   const notes = FIELDS.otherNotes();
   if (notes) data.push(['الملاحظات', notes]);
 
@@ -159,14 +217,13 @@ function buildCopyText(){
     if(state.wt.rr)       steps.push(`اختيار العميل: ${state.wt.rr}`);
   }
 
-  const reqs = [...(requiredEl?.querySelectorAll('.result')||[])].map(el=>el.textContent.trim()).filter(Boolean);
+  const reqs = [...(requiredEl?.querySelectorAll('.result')||[])].filter(el=>!el.classList.contains('result-apology')).map(el=>el.textContent.trim()).filter(Boolean);
 
   const lines = [];
   lines.push('الخلاصة');
 
   if(data.length){
     lines.push('');
-    lines.push('الملاحظات:');
     data.forEach(([k,v])=> lines.push(`${k}: ${v}`));
   }
   if(steps.length){
@@ -210,12 +267,14 @@ function renderMiniSummary(){
   let html = '<div class="mini-title">الخلاصة</div>';
 
   const data = [];
+  const ota = FIELDS.otaName();
+  if (ota) data.push(['اسم المنتج (OTA)', ota]);
   const notes = FIELDS.otherNotes();
   if (notes) data.push(['الملاحظات', notes]);
 
   if(data.length){
-    html += '<div class="mini-section is-data"><strong>الملاحظات:</strong><ul>';
-    data.forEach(([k,v])=> html += `<li>${k}: ${esc(v)}</li>`); html += '</ul></div>';
+    html += '<div class="mini-section is-data"><ul>';
+    data.forEach(([k,v])=> html += `<li><strong>${k}:</strong> ${esc(v)}</li>`); html += '</ul></div>';
   }
 
   const steps = [];
@@ -251,18 +310,20 @@ function renderMiniSummary(){
     steps.forEach(s=> html += `<li>${esc(s)}</li>`); html += '</ul></div>';
   }
 
-  const reqs = [...(requiredEl?.querySelectorAll('.result')||[])].map(el=>el.textContent.trim()).filter(Boolean);
+  const reqs = [...(requiredEl?.querySelectorAll('.result')||[])].filter(el=>!el.classList.contains('result-apology')).map(el=>el.textContent.trim()).filter(Boolean);
   if(reqs.length){
     html += '<div class="mini-section is-req"><strong>المطلوب:</strong><ul>';
     reqs.forEach(r=> html += `<li>${esc(r)}</li>`); html += '</ul></div>';
   }
   miniSummaryEl.innerHTML = html;
+
+  // تحديث حالة زر النسخ
+  updateCopyState();
 }
 
 /* =========================
-   جودة المنتج (Product Quality) — 14 حالة كما بالوصف
+   جودة المنتج / المفقود / خطأ فردي
    ========================= */
-
 /* تعريف الحالات */
 const PQ_CASES = [
   {id:'mold',       label:'عفن',         mode:'flow',    sub:'عفن'},
@@ -280,23 +341,16 @@ const PQ_CASES = [
   {id:'salty',      label:'ملح زائد',    mode:'flow',    sub:'ملح زائد',                  fishGate:true},
   {id:'expired',    label:'منتهي الصلاحية', mode:'flow',  sub:'منتهي الصلاحية'},
 ];
-
-/* مولد نص التصنيف */
 function pqTicket(c){
   if(c.mode==='hotfood') return 'Complaint–HotFood - Product Quality';
   return `Complaint – Product Quality – ${c.sub}`;
 }
+function replacementOrderLine(){ return 'عمل طلب جديد بنفس الكمية في الطلب الاساسي.'; }
 
-/* نص “عمل طلب جديد” — موحد بنص: بنفس الكمية في الطلب الاساسي */
-function replacementOrderLine(){
-  return 'عمل طلب جديد بنفس الكمية في الطلب الاساسي.';
-}
-
-/* البناء الأساسي لقسم جودة المنتج */
 function buildPQ(){
   state.type = 'pq';
   resetStatePart('pq');
-  clear(questionsEl); resetRequired(); show(qaCard,true);
+  clear(questionsEl); resetRequired(); show(qaCard,true); ensureColdNote();
 
   const wrap = document.createElement('div');
   wrap.className='case-grid';
@@ -311,12 +365,12 @@ function buildPQ(){
   renderMiniSummary();
 }
 
-/* اختيار الحالة والتفريعات */
 function selectPQCase(c, node){
   document.querySelectorAll('.case').forEach(x=>x.classList.remove('active'));
   node.classList.add('active');
   const old = document.querySelector('.q-after-grid'); if(old) old.remove();
   resetRequired();
+  ensureColdNote();
   wipe(state.pq, ['client','pay','product','withClient','rr']);
   state.pq.caseId    = c.id;
   state.pq.caseLabel = c.label;
@@ -326,11 +380,9 @@ function selectPQCase(c, node){
   holder.className='q-after-grid';
   questionsEl.appendChild(holder);
 
-  // حالات مباشرة
   if(c.mode==='instant'){ addResult(pqTicket(c)); return; }
   if(c.mode==='hotfood'){ addResult(pqTicket(c)); return; }
 
-  // تفريعات عامة للحالات "flow"
   const qClient = radioQuestion({
     title:'نوع العميل :',
     name:'pqClient',
@@ -363,7 +415,6 @@ function selectPQCase(c, node){
 
           if(pp.value==='prepaid'){ addResult(pqTicket(c)); return; }
 
-          // كاش/فيزا
           if(c.fishGate){
             const qKind = radioQuestion({
               title:'هل المنتج:',
@@ -443,7 +494,7 @@ ${pqTicket(caseObj)}`);
 function buildMissing(){
   state.type='missing';
   resetStatePart('mi');
-  clear(questionsEl); resetRequired(); show(qaCard,true);
+  clear(questionsEl); resetRequired(); show(qaCard,true); ensureColdNote();
 
   const q1 = radioQuestion({
     title:'نوع العميل :',
@@ -626,7 +677,7 @@ function buildMissing(){
 function buildWT(){
   state.type='wt';
   resetStatePart('wt');
-  clear(questionsEl); resetRequired(); show(qaCard,true);
+  clear(questionsEl); resetRequired(); show(qaCard,true); ensureColdNote();
 
   const step = radioQuestion({
     title:'اختر الحالة:',
@@ -876,8 +927,6 @@ function buildWT(){
           state.wt.client = (c.value==='branch')?'عميل فرع':'عميل ديليفري'; renderMiniSummary();
 
           if(c.value==='branch'){ addResult('Complaint Wrong Transaction – chef –  عدم الالتزام بكومنت'); return; }
-          // عميل ديليفري → متابعة الأسئلة
-          // سؤال طريقة الدفع
           const qPay = radioQuestion({
             title:'هل طريقة الدفع',
             name:'wtCPay',
@@ -892,15 +941,12 @@ function buildWT(){
               pruneNextSiblings(qPay,'q-block'); resetRequired();
               state.wt.pay = (p.value==='online')?'دفع مسبق':'كاش/فيزا'; renderMiniSummary();
 
-              // دالة مساعده: خطوات الاستبدال القياسية + PDF + اعتذار
               function replacementSteps(target){
                 addResult('عمل طلب جديد بالمنتج.');
                 addResult('ترحيل موعد التوصيل فترة واحدة.');
                 addResult("إضافة تعليق 'خاص بشكوى'.");
                 addResult(`عمل تيكت شكوي بالتصنيف ويتم أضافة PDF بالشكوي ${target}–عدم الالتزام بكومنت`);
               }
-
-              // دالة مساعده: سؤال نوع المنتج
               function askKind(kindName, handlers){
                 const qKind = radioQuestion({
                   title:'هل المنتج',
@@ -920,8 +966,6 @@ function buildWT(){
                   };
                 });
               }
-
-              // دالة مساعده: سؤال "المنتج متواجد مع العميل؟"
               function askWithCustomer(nameWhen, onYes, onNo){
                 const qWith = radioQuestion({
                   title:'المنتج متواجد مع العميل؟',
@@ -936,8 +980,6 @@ function buildWT(){
                   };
                 });
               }
-
-              // دالة مساعده: سؤال "استرجاع أم استبدال"
               function askRefundReplace(nameRR, onRefund, onReplace){
                 const qRR = radioQuestion({
                   title:'هل تريد استرجاع أم استبدال المنتج؟',
@@ -953,26 +995,21 @@ function buildWT(){
                 });
               }
 
-              // مسارات الدفع
               if(p.value==='online'){
-                // Online Payment → نوع المنتج
                 askKind('wtCKindOnline', {
                   fish: ()=>{
-                    // سمك → سؤال تواجد المنتج (لكن النتيجة ثابتة Chef في الحالتين)
                     askWithCustomer('wtCFishWithCustOnline',
                       ()=>{ addResult('Complaint Wrong Transaction – chef –  عدم الالتزام بكومنت'); },
                       ()=>{ addResult('Complaint Wrong Transaction – chef –  عدم الالتزام بكومنت'); }
                     );
                   },
                   meat: ()=>{
-                    // لحوم/دواجن/جبن بالوزن → استرجاع أو استبدال (Chef)
                     askRefundReplace('wtCMeatRROnline',
                       ()=>{ addResult('Complaint Wrong Transaction – Chef – عدم الالتزام بكومنت'); },
                       ()=>{ replacementSteps('Complaint Wrong Transaction – Chef '); }
                     );
                   },
                   other: ()=>{
-                    // منتجات أخرى → استرجاع أو استبدال (Picker)
                     askRefundReplace('wtCOtherRROnline',
                       ()=>{ addResult('Complaint Wrong Transaction – Picker– عدم الالتزام بكومنت'); },
                       ()=>{ replacementSteps('Complaint Wrong Transaction – Picker '); }
@@ -980,7 +1017,6 @@ function buildWT(){
                   }
                 });
               }else{
-                // كاش/فيزا → التطبيق أم OTA؟
                 const qCh = radioQuestion({
                   title:'هل الطلب من خلال التطبيق أم OTA؟',
                   name:'wtCChannel',
@@ -991,7 +1027,6 @@ function buildWT(){
                   ch.onchange=()=>{
                     pruneNextSiblings(qCh,'q-block'); resetRequired();
                     if(ch.value==='app'){
-                      // من خلال التطبيق → نفس منطق الـ Online
                       askKind('wtCKindCashApp', {
                         fish: ()=>{
                           askWithCustomer('wtCFishWithCustCashApp',
@@ -1013,7 +1048,6 @@ function buildWT(){
                         }
                       });
                     }else{
-                      // OTA → هل الكومنت متواجد على المنتج على OTA؟
                       const qOTA = radioQuestion({
                         title:'هل الكومنت متواجد علي المنتج علي OTA؟',
                         name:'wtCOTACmt',
@@ -1024,7 +1058,6 @@ function buildWT(){
                         o.onchange=()=>{
                           pruneNextSiblings(qOTA,'q-block'); resetRequired();
                           if(o.value==='no'){
-                            // لا يوجد كومنت على OTA → CC
                             askKind('wtCKindCashOTA_no', {
                               fish: ()=>{
                                 askWithCustomer('wtCFishWithCustCashOTANo',
@@ -1039,7 +1072,6 @@ function buildWT(){
                                 );
                               },
                               other: ()=>{
-                                // منتجات أخرى → أولاً سؤال المحاسبة على الكمية كاملة
                                 const qInv = radioQuestion({
                                   title:'هل تم المحاسبة في الفاتورة على الكمية كاملة؟',
                                   name:'wtCOTAOthersInvNo',
@@ -1063,7 +1095,6 @@ function buildWT(){
                               }
                             });
                           }else{
-                            // يوجد كومنت على OTA → نفس منطق التطبيق لكن التصنيفات Chef/Picker وليست CC
                             askKind('wtCKindCashOTA_yes', {
                               fish: ()=>{
                                 askWithCustomer('wtCFishWithCustCashOTAYes',
@@ -1109,14 +1140,19 @@ function buildWT(){
               }
             };
           });
+        };
+      });
+    };
+  });
+}
 
-
-          /* =========================
+/* =========================
    إنهاء الشكوى + Reset
    ========================= */
 function clearComplaintInputs(){
   const el = document.getElementById('otherNotes');
   if(el){ el.value=''; el.classList.remove('invalid'); }
+  if(otaEl){ otaEl.value=''; otaEl.classList.remove('invalid'); }
 }
 function resetAll(){
   state.type=null;
@@ -1137,16 +1173,7 @@ function resetAll(){
   renderMiniSummary();
 }
 
-
-            }; // end p.onchange
-          }); // end qPay forEach
-        }; // end qClient2 onchange
-      }); // end qClient2 forEach
-} // end buildWT
-/* =========================
-   التحكم العام في اختيار نوع الشكوى
-   ========================= */
-/* ربط مباشر */
+/* التحكم العام في اختيار نوع الشكوى */
 document.querySelectorAll('input[name="ctype"]').forEach(input=>{
   input.addEventListener('change', (e)=>{
     clear(questionsEl); resetRequired();
@@ -1158,7 +1185,6 @@ document.querySelectorAll('input[name="ctype"]').forEach(input=>{
     else if(v==='wt') buildWT();
   });
 });
-/* Event delegation احتياطي لو السكربت اتحمل قبل الـHTML */
 document.addEventListener('change', (e)=>{
   const t = e.target;
   if(!t || t.name!=='ctype') return;
@@ -1174,14 +1200,19 @@ document.addEventListener('change', (e)=>{
 /* =========================
    أزرار الخلاصة
    ========================= */
+function updateCopyState(){ if(!btnCopy) return; btnCopy.disabled = false; }
 btnEnd && btnEnd.addEventListener('click', ()=>{
   if(confirm('هل أنت متأكد أنك تريد إنهاء الشكوى؟')) resetAll();
 });
 
 btnCopy && btnCopy.addEventListener('click', async()=>{
+  // التحقق الإجباري قبل النسخ
+  if(!FIELDS.otaName()){
+    showToast('برجاء كتابة اسم المنتج حتى يتم النسخ', 'error');
+    return;
+  }
   try{
     const text = buildCopyText();
-    if(!text?.trim()){ showToast('الخلاصة فارغة حاليًا.', 'error'); return; }
     await navigator.clipboard.writeText(text);
     showToast('تم نسخ الخلاصة بنجاح ✅', 'success');
   }catch{ showToast('تعذّر نسخ الخلاصة.', 'error'); }
@@ -1260,9 +1291,10 @@ function saveCurrentDraft(){
     ts: Date.now(),
     customer: '',
     fields: {
+      otaName: FIELDS.otaName(),
       otherNotes: FIELDS.otherNotes(),
     },
-    type: state.type,           // لو كانت مسودة قديمة نوعها delay، مش هنرندر خطوات خاصة بيها
+    type: state.type,
     state: JSON.parse(JSON.stringify(state)),
     required: currentResultsArray(),
     brand: document.body.getAttribute('data-brand') || ''
@@ -1320,16 +1352,15 @@ function loadDraftByIdFromURL(){
     if(!d){ showToast('لم يتم العثور على هذه المسودة.', 'error'); return; }
 
     resetAll();
-    const el = document.getElementById('otherNotes');
-    if(el) el.value = d.fields?.otherNotes ?? '';
+    const notesEl = document.getElementById('otherNotes');
+    if(notesEl) notesEl.value = d.fields?.otherNotes ?? '';
+    if(otaEl) otaEl.value = d.fields?.otaName ?? '';
 
-    // لو كانت مسودة قديمة فيها حقول delay تجاهلها بأمان
     state.type = (d.type==='delay') ? null : (d.type || null);
     if(d.state){
       state.pq = d.state.pq || state.pq;
       state.mi = d.state.mi || state.mi;
       state.wt = d.state.wt || state.wt;
-      // نتجاهل d.state.delay إن وجد
     }
 
     resetRequired();
@@ -1339,13 +1370,21 @@ function loadDraftByIdFromURL(){
   }catch{}
 }
 
-/* ===== تحديث الخلاصة مباشرة عند كتابة الملاحظات (Live Notes) ===== */
-(function hookLiveNotes(){
-  const el = document.getElementById('otherNotes');
-  if(!el) return;
-  const handler = ()=>{ renderMiniSummary(); };
-  el.addEventListener('input', handler);
-  el.addEventListener('change', handler);
+/* ===== تحديث الخلاصة مباشرة ===== */
+(function hookLiveInputs(){
+  const notesEl = document.getElementById('otherNotes');
+  if(notesEl){
+    const handler = ()=>{ renderMiniSummary(); };
+    notesEl.addEventListener('input', handler);
+    notesEl.addEventListener('change', handler);
+  }
+  if(otaEl){
+    const handler = ()=>{ markInvalidEl(otaEl, !FIELDS.otaName()); renderMiniSummary(); };
+    otaEl.addEventListener('input', handler);
+    otaEl.addEventListener('change', handler);
+    // حالة أولية
+    updateCopyState();
+  }
 })();
 
 /* تهيئة */
