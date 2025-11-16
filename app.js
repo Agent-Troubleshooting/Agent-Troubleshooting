@@ -69,36 +69,31 @@ function esc(s=''){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>
         margin-top:12px;
         line-height:1.7;
       }
+      /* نسخة العنوان العلوية قبل الأسئلة */
+      .note-cold.note-top{ margin-bottom:12px; }
       .note-cold b { color:#0b3c91; }
     `;
     document.head.appendChild(st);
   }catch{}
 })();
 
-/* ========= ملحوظة المنتجات المبردة/المجمدة — تُعرض أسفل عنوان "المطلوب" فقط عند جودة منتج ========= */
-
-
+/* ========= ملحوظة المنتجات المبردة/المجمدة — تظهر تحت "المطلوب" فقط عند WT + Chef ========= */
 function ensureColdNote(){
   try{
     if(!requiredEl) return;
 
-    // هل يوجد أي عنصر "مطلوب" يخص الشيف؟
     const hasChef = [...(requiredEl.querySelectorAll('.result')||[])]
       .some(el => /Chef|chef/.test((el.textContent||'').trim()));
 
-    // نظهر الملحوظة في حالتين:
-    // 1) شكوى جودة منتج (PQ)
-    // 2) خطأ فردي (WT) وكان هناك بند متعلق بالشيف
-    const shouldShow = (state.type === 'pq') || (state.type === 'wt' && hasChef);
+    const shouldShow = (state.type === 'wt' && hasChef);
 
     const existing = requiredEl.querySelector('.note-cold');
     if (!shouldShow){
-      if(existing) existing.remove(); // لو مش مطلوبة، نشيلها
+      if(existing) existing.remove();
       return;
     }
 
     if (existing){
-      // انقلها لأسفل القسم لتكون آخر عنصر في "المطلوب"
       requiredEl.appendChild(existing);
       return;
     }
@@ -106,20 +101,58 @@ function ensureColdNote(){
     const note = document.createElement('div');
     note.className = 'note-cold';
     note.innerHTML = `
-    <b>ملحوظة هامة:</b><br>
-    في حالة <b>المنتجات المبردة أو المجمدة</b>، يتم إبلاغ العميل بضرورة الاحتفاظ بالمنتج على حالته.<br>
-    <b>لو المنتج مبرد</b>، يتم حفظه في <b>الثلاجة</b>، ولو المنتج <b>مجمد</b> يُحفظ في <b>الفريزر</b>.<br>
-    في حالة أن المنتج <b>مبرد وتم الاحتفاظ به مجمد</b> أو <b>العكس</b> يتم عمل <b>شكوى فقط</b> ولا يتم عمل طلب جديد للعميل.
+      <b>ملحوظة هامة:</b><br>
+      في حالة <b>المنتجات المبردة أو المجمدة</b>، يتم إبلاغ العميل بضرورة الاحتفاظ بالمنتج على حالته.<br>
+      <b>لو المنتج مبرد</b>، يتم حفظه في <b>الثلاجة</b>، ولو المنتج <b>مجمد</b> يُحفظ في <b>الفريزر</b>.<br>
+      في حالة أن المنتج <b>مبرد وتم الاحتفاظ به مجمد</b> أو <b>العكس</b> يتم عمل <b>شكوى فقط</b> ولا يتم عمل طلب جديد للعميل.
     `;
-    // ضعها أسفل قسم "المطلوب" كآخر عنصر
     requiredEl.appendChild(note);
   }catch{}
 }
+
+/* ========= إظهار/إخفاء ملحوظة قبل الأسئلة عند اختيار PQ ========= */
+function renderColdNoteTopForPQ(showTop=true){
+  try{
+    const card = document.getElementById('qaCard');
+    if(!card) return;
+
+    let note = card.querySelector('.note-cold.note-top');
+    if(!showTop){
+      if(note) note.remove();
+      return;
+    }
+
+    if(!note){
+      note = document.createElement('div');
+      note.className = 'note-cold note-top';
+      note.innerHTML = `
+        <b>ملحوظة هامة:</b><br>
+        في حالة <b>المنتجات المبردة أو المجمدة</b>، يتم إبلاغ العميل بضرورة الاحتفاظ بالمنتج على حالته.<br>
+        <b>لو المنتج مبرد</b>، يتم حفظه في <b>الثلاجة</b>، ولو المنتج <b>مجمد</b> يُحفظ في <b>الفريزر</b>.<br>
+        في حالة أن المنتج <b>مبرد وتم الاحتفاظ به مجمد</b> أو <b>العكس</b> يتم عمل <b>شكوى فقط</b> ولا يتم عمل طلب جديد للعميل.
+      `;
+      // ضعها مباشرة بعد عنوان البطاقة وقبل #questions
+      const title = card.querySelector('.card-title');
+      if(title && title.nextSibling){
+        title.parentNode.insertBefore(note, title.nextSibling.nextSibling ?? card.firstChild);
+      }else{
+        card.prepend(note);
+      }
+    }else{
+      // تأكد أنها قبل قسم الأسئلة
+      const questions = document.getElementById('questions');
+      if(questions && note.nextElementSibling !== questions){
+        questions.parentNode.insertBefore(note, questions);
+      }
+    }
+  }catch{}
+}
+
 /* دالة فحص: نضيف رسالة الاعتذار فقط عندما يكون المطلوب "عمل طلب جديد" فعليًا (وليس "عرض") */
 function shouldInjectApology(line=''){
   const t = (line||'').trim();
-  if(/^\s*عرض\s+طلب\s+جديد/i.test(t)) return false;                 // استبعاد "عرض طلب جديد"
-  if(/^\s*يتم\s+عرض\s+طلب\s+جديد/i.test(t)) return false;           // استبعاد "يتم عرض طلب جديد"
+  if(/^\s*عرض\s+طلب\s+جديد/i.test(t)) return false;
+  if(/^\s*يتم\s+عرض\s+طلب\s+جديد/i.test(t)) return false;
   return (
     /^\s*عمل\s+طلب\s+جديد\b/.test(t)
     || /طلب\s+جديد\s+بالمفقود/.test(t)
@@ -147,8 +180,7 @@ function addResult(text, opts={}){
     يتم توضيح ده في الـ Ticket بشكل واضح علشان يتم المتابعة من الفريق المختص.`;
     requiredEl.appendChild(ap);
   }
-  // تأكيد إظهار ملحوظة المنتجات المبردة/المجمدة إن كانت الشكوى جودة منتج
-  ensureColdNote();
+  ensureColdNote();      // تُدير حالة WT + Chef فقط الآن
   renderMiniSummary();
 }
 
@@ -251,7 +283,6 @@ const state = {
   pq: { caseId:null,caseLabel:null,client:null,pay:null,product:null,withClient:null,rr:null },
   mi: { client:null,pay:null,fish:null,inv:null,abd:null, source:null },
   wt: { scenario:null,client:null,pay:null,kind:null,invoiced:null,abd:null,rr:null },
-  // تمت إزالة delay
 };
 function resetStatePart(key){
   if(key==='pq') state.pq = {caseId:null,caseLabel:null,client:null,pay:null,product:null,withClient:null,rr:null};
@@ -350,7 +381,10 @@ function replacementOrderLine(){ return 'عمل طلب جديد بنفس الك�
 function buildPQ(){
   state.type = 'pq';
   resetStatePart('pq');
-  clear(questionsEl); resetRequired(); show(qaCard,true); ensureColdNote();
+  clear(questionsEl); resetRequired(); show(qaCard,true);
+
+  /* === الملحوظة أعلى الأسئلة عند PQ === */
+  renderColdNoteTopForPQ(true);
 
   const wrap = document.createElement('div');
   wrap.className='case-grid';
@@ -370,7 +404,7 @@ function selectPQCase(c, node){
   node.classList.add('active');
   const old = document.querySelector('.q-after-grid'); if(old) old.remove();
   resetRequired();
-  ensureColdNote();
+  ensureColdNote(); // لن تظهر هنا لأن state.type = 'pq'
   wipe(state.pq, ['client','pay','product','withClient','rr']);
   state.pq.caseId    = c.id;
   state.pq.caseLabel = c.label;
@@ -494,7 +528,10 @@ ${pqTicket(caseObj)}`);
 function buildMissing(){
   state.type='missing';
   resetStatePart('mi');
-  clear(questionsEl); resetRequired(); show(qaCard,true); ensureColdNote();
+  clear(questionsEl); resetRequired(); show(qaCard,true);
+
+  /* اخفاء الملحوظة العلوية لأن نوع الشكوى ليس PQ */
+  renderColdNoteTopForPQ(false);
 
   const q1 = radioQuestion({
     title:'نوع العميل :',
@@ -677,7 +714,10 @@ function buildMissing(){
 function buildWT(){
   state.type='wt';
   resetStatePart('wt');
-  clear(questionsEl); resetRequired(); show(qaCard,true); ensureColdNote();
+  clear(questionsEl); resetRequired(); show(qaCard,true);
+
+  /* اخفاء الملحوظة العلوية لأن النوع ليس PQ */
+  renderColdNoteTopForPQ(false);
 
   const step = radioQuestion({
     title:'اختر الحالة:',
@@ -1168,6 +1208,9 @@ function resetAll(){
 
   const bar = document.querySelector('#qaProgress .bar');
   if(bar) bar.style.width='0%';
+
+  /* إزالة الملحوظة العلوية إن وُجدت */
+  renderColdNoteTopForPQ(false);
 
   clearComplaintInputs();
   renderMiniSummary();
