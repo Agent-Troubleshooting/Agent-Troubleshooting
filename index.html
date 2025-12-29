@@ -1,4 +1,3 @@
-<!-- index.html (FULL) -->
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -110,7 +109,6 @@
             <input id="ts_mobile" type="tel" placeholder="05xxxxxxxx" />
           </div>
 
-          <!-- ✅ Store picklist -->
           <div class="form-field">
             <div class="label">Store <span class="req">*</span></div>
             <select id="ts_store">
@@ -172,18 +170,15 @@
 
           <div class="form-field">
             <div class="label">Customer Type <span class="req">*</span></div>
-            <input id="ts_customerType" type="text" placeholder="Auto" />
+            <input id="ts_customerType" type="text" placeholder="Auto / أو عدّلها يدويًا" />
           </div>
 
+          <!-- ✅✅✅ التعديل الوحيد هنا: بدل Select بقى Input تكتب فيه رقم -->
           <div class="form-field">
             <div class="label">Order Created <span class="req">*</span></div>
-            <select id="ts_orderCreated">
-              <option value="">-- اختر --</option>
-              <option value="1">Yes</option>
-              <option value="0">No</option>
-	          <option value="999">N/A</option>
-            </select>
+             <input id="ts_orderCreated" type="text" placeholder="اكتب رقم Order Created" />
           </div>
+          <!-- ✅✅✅ نهاية التعديل -->
 
           <div class="form-field">
             <div class="label">سياسة الاستبدال والاسترجاع <span class="req">*</span></div>
@@ -205,11 +200,15 @@
             </select>
           </div>
 
-          <!-- ✅ Subject اتشال من الواجهة (بس موجود كـ hidden للـ extension) -->
-          <input id="ts_subject" type="hidden" />
+          <div class="form-field" style="grid-column:1/-1;">
+            <div class="label">Subject <span class="req">*</span></div>
+            <input id="ts_subject" type="text" placeholder="Auto / أو عدّلها يدويًا" />
+          </div>
 
-          <!-- ✅ Description مخفي (مش متشال) عشان extension -->
-          <textarea id="ts_description" style="display:none"></textarea>
+          <div class="form-field" style="grid-column:1/-1;">
+            <div class="label">Description <span class="req">*</span></div>
+            <textarea id="ts_description" rows="6" placeholder="سيتم توليد الوصف تلقائيًا… ويمكنك تعديله"></textarea>
+          </div>
         </div>
       </article>
 
