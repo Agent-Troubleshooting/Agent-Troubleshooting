@@ -120,9 +120,20 @@ body[data-layout="normal"] .grid{ grid-template-columns:1fr 1.8fr; grid-template
 @media (max-width:900px){ .form-grid{ grid-template-columns:1fr; } }
 .form-field{ display:flex; flex-direction:column; gap:6px; }
 .label{ font-size:.92rem; color:#17372a; font-weight:800; letter-spacing:.15px; }
-input[type="text"], textarea{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:#fff; color:#1f2937; transition:.2s border-color,.2s box-shadow; }
+
+.req{ color:var(--danger); font-weight:900; }
+
+input[type="text"], input[type="tel"], textarea, select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#fff;
+  color:#1f2937;
+  transition:.2s border-color,.2s box-shadow;
+}
 input::placeholder, textarea::placeholder{ color:var(--muted); }
-input:focus, textarea:focus{ border-color:var(--primary); box-shadow:var(--ring); }
+input:focus, textarea:focus, select:focus{ border-color:var(--primary); box-shadow:var(--ring); outline:none; }
 
 /* ملاحظات أخرى بلون مميز */
 .note-field{
@@ -132,6 +143,12 @@ input:focus, textarea:focus{ border-color:var(--primary); box-shadow:var(--ring)
 .note-field:focus{
   border-color:#f59e0b;
   box-shadow:0 0 0 3px rgba(245,158,11,.18);
+}
+
+/* Ticket grid small tweak */
+.ticket-grid textarea{
+  background:#f8fafc;
+  border-color:#e2e8f0;
 }
 
 /* ---------- Q blocks ---------- */
@@ -189,10 +206,47 @@ input:focus, textarea:focus{ border-color:var(--primary); box-shadow:var(--ring)
 
 #copyMiniBtn{ background:var(--primary); color:#fff; border:none; border-radius:12px; padding:10px 14px; box-shadow:var(--shadow); font-weight:800; }
 #copyMiniBtn:hover{ background:#15803d; }
+
 #endBtn{ background:#ef4444; color:#fff; border:none; border-radius:12px; padding:10px 14px; box-shadow:var(--shadow); font-weight:800; }
 #endBtn:hover{ filter:brightness(.95); }
+
 #saveDraftBtn{ background:#065f46; color:#fff; border:none; border-radius:12px; padding:10px 14px; box-shadow:var(--shadow); font-weight:800; }
 #saveDraftBtn:hover{ filter:brightness(.95); }
+
+/* ✅ UPDATED: Create Ticket Button (يدعم id + class) */
+#createTicketBtn,
+.create-ticket-btn{
+  /* شكل مميز */
+  background:linear-gradient(135deg, var(--primary-600), var(--primary));
+  color:#fff;
+  border:none;
+  border-radius:14px;
+  padding:14px 18px;
+  box-shadow:0 14px 30px rgba(0,0,0,.12);
+  font-weight:900;
+  font-size:1.06rem;
+  letter-spacing:.2px;
+
+  /* يخليه تحت الأزرار حتى لو مكتوب أول في الـHTML */
+  order: 99;
+
+  /* صف لوحده */
+  flex: 1 1 100%;
+  width:100%;
+
+  /* تحسين إحساس الزر */
+  transition:transform .12s ease, filter .2s ease, box-shadow .2s ease;
+}
+#createTicketBtn:hover,
+.create-ticket-btn:hover{
+  filter:brightness(.98);
+  transform:translateY(-1px);
+  box-shadow:0 18px 38px rgba(0,0,0,.16);
+}
+#createTicketBtn:active,
+.create-ticket-btn:active{
+  transform:translateY(0px);
+}
 
 /* ---------- Thin progress ---------- */
 .thin-progress{ margin:0 0 10px 0; height:8px; background:#e5e7eb; border-radius:999px; overflow:hidden; }
@@ -200,7 +254,7 @@ input:focus, textarea:focus{ border-color:var(--primary); box-shadow:var(--ring)
 
 /* ---------- Utilities ---------- */
 .hint{ color:#667085; font-size:.85rem; }
-.row{ display:flex; gap:14px; align-items:flex-start; }
+.row{ display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; }
 .mt8{ margin-top:8px; } .mt12{ margin-top:12px; } .mt16{ margin-top:16px; }
 #qaCard{ padding:18px; } #questions{ margin-top:8px; } .q-after-grid{ margin-top:10px; }
 
@@ -211,7 +265,7 @@ input:focus, textarea:focus{ border-color:var(--primary); box-shadow:var(--ring)
 .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); border-radius:14px; padding:12px 16px; box-shadow:0 12px 32px rgba(0,0,0,.10); z-index:9999; max-width:90vw; font-weight:800; }
 .toast-error{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
 .toast-success{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
-input.invalid{ border-color:#ef4444 !important; box-shadow:0 0 0 3px rgba(239,68,68,.15) !important; }
+input.invalid, textarea.invalid, select.invalid{ border-color:#ef4444 !important; box-shadow:0 0 0 3px rgba(239,68,68,.15) !important; }
 
 /* تصغير الالتصاق على الموبايل */
 @media (max-width:1100px){ :root{ --mini-stick-top: 78px; } }
