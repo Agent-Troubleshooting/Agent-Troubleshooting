@@ -1,3 +1,4 @@
+<!-- index.html (FULL) -->
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -5,7 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agent Troubleshooting – Seoudi Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    .invalid{border-color:#ef4444 !important; box-shadow:0 0 0 3px rgba(239,68,68,.12) !important;}
+  </style>
 </head>
+
 <body class="rtl">
   <!-- Sidebar Drafts (fixed, collapsible) -->
   <aside id="draftsSidebar" class="drafts collapsed" aria-label="Drafts">
@@ -49,15 +55,29 @@
       <article id="miniSummaryCard" class="card p-card mini-sticky">
         <h3 class="card-title" data-ico="🗂️">الخلاصة</h3>
         <div id="miniSummary"></div>
-        <div class="row mt12" style="justify-content:flex-end; gap:10px;">
-          <button id="copyMiniBtn" class="seg">نسخ الخلاصة</button>
-          <button id="saveDraftBtn" class="seg seg-draft">حفظ Draft</button>
-          <button id="endBtn" class="seg">إنهاء الشكوى</button>
+
+        <!-- ✅ Buttons: (نسخ/درافت/إنهاء) فوق + (إنشاء شكوى) تحت -->
+        <div class="mt12" style="display:flex; flex-direction:column; gap:10px;">
+          <div class="row" style="justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+            <button id="copyMiniBtn" class="seg">نسخ الخلاصة</button>
+            <button id="saveDraftBtn" class="seg seg-draft">حفظ Draft</button>
+            <button id="endBtn" class="seg">إنهاء الشكوى</button>
+          </div>
+
+          <div class="row" style="justify-content:flex-end;">
+            <button
+              id="createTicketBtn"
+              class="create-ticket-btn"
+              style="font-size:1.05rem; padding:12px 18px; font-weight:900;"
+            >
+              إنشاء شكوى
+            </button>
+          </div>
         </div>
       </article>
     </section>
 
-    <!-- يمين: نوع الشكوى + الأسئلة + المطلوب + (الملاحظات فقط تحت) -->
+    <!-- يمين: نوع الشكوى + الأسئلة + المطلوب + بيانات التيكت + (الملاحظات + اسم المنتج من OTA) -->
     <section class="col-right">
       <article class="card p-card">
         <h3 class="card-title" data-ico="📋">نوع الشكوى</h3>
@@ -65,7 +85,6 @@
           <label class="seg"><input type="radio" name="ctype" value="pq" /><span>جودة منتج</span></label>
           <label class="seg"><input type="radio" name="ctype" value="missing" /><span>عناصر مفقودة</span></label>
           <label class="seg"><input type="radio" name="ctype" value="wt" /><span>خطأ فردي</span></label>
-          <!-- تم حذف خيار تأخير توصيل -->
         </div>
         <p class="hint mt8">اختر نوع الشكوى لبدء الخطوات.</p>
       </article>
@@ -81,12 +100,129 @@
         <div id="summary"></div>
       </article>
 
-      <!-- الملاحظات فقط -->
+      <!-- Ticket Data Section -->
+      <article id="ticketDataCard" class="card p-card mt16">
+        <h3 class="card-title" data-ico="🧾">بيانات التيكت</h3>
+
+        <div class="form-grid ticket-grid">
+          <div class="form-field">
+            <div class="label">Customer Mobile <span class="req">*</span></div>
+            <input id="ts_mobile" type="tel" placeholder="05xxxxxxxx" />
+          </div>
+
+          <!-- ✅ Store picklist -->
+          <div class="form-field">
+            <div class="label">Store <span class="req">*</span></div>
+            <select id="ts_store">
+              <option value="">-- اختر الفرع --</option>
+              <option value="N/A">N/A</option>
+              <option value="Zayed DS - زايد دارك ستور">Zayed DS - زايد دارك ستور</option>
+              <option value="El-Shrouk الشروق">El-Shrouk الشروق</option>
+              <option value="Silver Star سيلفرستارز">Silver Star سيلفرستارز</option>
+              <option value="Sheraton شيراتون">Sheraton شيراتون</option>
+              <option value="Dream Land دريم لاند">Dream Land دريم لاند</option>
+              <option value="Makram Ebied مكرم عبيد">Makram Ebied مكرم عبيد</option>
+              <option value="Madinaty مدينتي">Madinaty مدينتي</option>
+              <option value="Mall Of Arabia - مول العرب">Mall Of Arabia - مول العرب</option>
+              <option value="Sodic سوديك">Sodic سوديك</option>
+              <option value="District 5 ديستريكت">District 5 ديستريكت</option>
+              <option value="Maadi 1 المعادي1">Maadi 1 المعادي1</option>
+              <option value="Dokki الدقي">Dokki الدقي</option>
+              <option value="DS Maadi المعادي دارك ستور">DS Maadi المعادي دارك ستور</option>
+              <option value="City Stars سيتي ستارز">City Stars سيتي ستارز</option>
+              <option value="Water Way ووترواي">Water Way ووترواي</option>
+              <option value="Roxi روكسي">Roxi روكسي</option>
+              <option value="El-Hegaz الحجاز">El-Hegaz الحجاز</option>
+              <option value="El-Hekma الحكمة">El-Hekma الحكمة</option>
+              <option value="Kit kat DS - كيت كات دارك ستور">Kit kat DS - كيت كات دارك ستور</option>
+              <option value="Zayed زايد">Zayed زايد</option>
+              <option value="Maadi 2 المعادي 2">Maadi 2 المعادي 2</option>
+              <option value="Hassanin Haikal حسنين هيكل">Hassanin Haikal حسنين هيكل</option>
+              <option value="Sphinx سفنكس">Sphinx سفنكس</option>
+              <option value="El-Tayaran الطيران">El-Tayaran الطيران</option>
+              <option value="AUC الجامعة الامريكية">AUC الجامعة الامريكية</option>
+              <option value="East Town - ايست تاون">East Town - ايست تاون</option>
+              <option value="Sodic East سوديك ايست">Sodic East سوديك ايست</option>
+              <option value="AlAlmein العلمين">AlAlmein العلمين</option>
+              <option value="Marassi مراسي">Marassi مراسي</option>
+              <option value="Caesar Matcha -سيزر ماتشا الساحل الشمالي">Caesar Matcha -سيزر ماتشا الساحل الشمالي</option>
+              <option value="Hyde Park- هايد بارك">Hyde Park- هايد بارك</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <div class="label">Order Number <span class="req">*</span></div>
+            <input id="ts_orderNumber" type="text" placeholder="رقم الأوردر" />
+          </div>
+
+          <div class="form-field">
+            <div class="label">Transaction Number</div>
+            <input id="ts_transactionNumber" type="text" placeholder="اختياري" />
+          </div>
+
+          <div class="form-field">
+            <div class="label">Sub Category <span class="req">*</span></div>
+            <input id="ts_subCategory" type="text" placeholder="Auto / أو عدّلها يدويًا" />
+          </div>
+
+          <div class="form-field">
+            <div class="label">Item <span class="req">*</span></div>
+            <input id="ts_item" type="text" placeholder="Auto / أو عدّلها يدويًا" />
+          </div>
+
+          <div class="form-field">
+            <div class="label">Customer Type <span class="req">*</span></div>
+            <input id="ts_customerType" type="text" placeholder="Auto" />
+          </div>
+
+          <div class="form-field">
+            <div class="label">Order Created <span class="req">*</span></div>
+            <select id="ts_orderCreated">
+              <option value="">-- اختر --</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <div class="label">سياسة الاستبدال والاسترجاع <span class="req">*</span></div>
+            <select id="ts_returnPolicy">
+              <option value="">-- اختر --</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+              <option value="N/A">N/A</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <div class="label">المنتج متواجد لدى العميل <span class="req">*</span></div>
+            <select id="ts_withCustomer">
+              <option value="">-- اختر --</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+              <option value="N/A">N/A</option>
+            </select>
+          </div>
+
+          <!-- ✅ Subject اتشال من الواجهة (بس موجود كـ hidden للـ extension) -->
+          <input id="ts_subject" type="hidden" />
+
+          <!-- ✅ Description مخفي (مش متشال) عشان extension -->
+          <textarea id="ts_description" style="display:none"></textarea>
+        </div>
+      </article>
+
+      <!-- OTA Product + Notes -->
       <article class="card p-card mt16">
-        <h3 class="card-title" data-ico="📑">الملاحظات </h3>
+        <h3 class="card-title" data-ico="🧾">بيانات إضافية</h3>
         <div class="form-grid">
+          <div class="form-field">
+            <div class="label">اسم المنتج من على OTA <span class="req">*</span></div>
+            <input id="otaProductName" type="text" placeholder="اكتب اسم المنتج كما هو ظاهر على OTA" />
+          </div>
+
           <div class="form-field" style="grid-column:1/-1;">
-            <div class="label">الملاحظات </div>
+            <div class="label">الملاحظات</div>
             <textarea id="otherNotes" class="note-field" rows="3"
               placeholder="برجاء كتابة أي تفاصيل متعلقة بالعميل مثل: التواصل قبل الساعة 11"></textarea>
           </div>
